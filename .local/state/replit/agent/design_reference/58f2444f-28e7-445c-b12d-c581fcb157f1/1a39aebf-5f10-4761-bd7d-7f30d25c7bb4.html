@@ -1,0 +1,619 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiveM Store API - Design Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a1a2e',
+                        secondary: '#16213e',
+                        accent: '#00d4ff',
+                        success: '#00ff88',
+                        warning: '#ffa500',
+                        error: '#ff4757',
+                        'dark-card': '#0f1419',
+                        'dark-border': '#2d3748'
+                    },
+                    fontFamily: {
+                        'gaming': ['Orbitron', 'monospace'],
+                        'sans': ['Inter', 'sans-serif']
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff, 0 0 15px #00d4ff; }
+            to { box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff, 0 0 30px #00d4ff; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+        .neon-border {
+            border: 1px solid #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-primary text-white min-h-screen font-sans">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex min-h-screen">
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-64 bg-secondary border-r border-dark-border fixed h-full z-30">
+            <div class="p-6 border-b border-dark-border">
+                <h1 class="text-2xl font-gaming font-bold text-accent">FiveM Store</h1>
+                <p class="text-gray-400 text-sm">API Management System</p>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="p-4 space-y-2">
+                <!-- @STATE: activeSection:string = 'dashboard' -->
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-accent/20 text-accent border border-accent/30" data-mock="true">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Cart Management</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-server"></i>
+                    <span>FiveM Integration</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700/50 transition-colors" data-mock="true">
+                    <i class="fas fa-webhook"></i>
+                    <span>Webhooks</span>
+                </a>
+            </nav>
+
+            <!-- API Status -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-dark-border">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+                    <span class="text-sm text-gray-400">API Online</span>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Replit Ready</div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 ml-64 p-8">
+            <!-- @COMPONENT: TopBar -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-gaming font-bold text-white">API Dashboard</h2>
+                    <p class="text-gray-400">FiveM Store REST API Management</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- @COMPONENT: UserProfile -->
+                    <div class="flex items-center space-x-3 bg-secondary px-4 py-2 rounded-lg border border-dark-border">
+                        <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-primary"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium" data-bind="user.username">admin@store.com</p>
+                            <p class="text-xs text-gray-400" data-bind="user.role">Super Admin</p>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: UserProfile -->
+                </div>
+            </div>
+            <!-- @END_COMPONENT: TopBar -->
+
+            <!-- @COMPONENT: StatsCards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- @MAP: stats.map(stat => ( -->
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border api-card transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Total Users</p>
+                            <p class="text-2xl font-bold text-white" data-bind="stats.totalUsers">1,247</p>
+                            <div class="flex items-center mt-2">
+                                <i class="fas fa-arrow-up text-success text-xs"></i>
+                                <span class="text-success text-xs ml-1">+12%</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-accent"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border api-card transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Monthly Revenue</p>
+                            <p class="text-2xl font-bold text-white">R$ 15,420</p>
+                            <div class="flex items-center mt-2">
+                                <i class="fas fa-arrow-up text-success text-xs"></i>
+                                <span class="text-success text-xs ml-1">+8.5%</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-success"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border api-card transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Active Products</p>
+                            <p class="text-2xl font-bold text-white">89</p>
+                            <div class="flex items-center mt-2">
+                                <i class="fas fa-arrow-up text-success text-xs"></i>
+                                <span class="text-success text-xs ml-1">+3</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-box text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border api-card transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Pending Payments</p>
+                            <p class="text-2xl font-bold text-white">23</p>
+                            <div class="flex items-center mt-2">
+                                <i class="fas fa-clock text-warning text-xs"></i>
+                                <span class="text-warning text-xs ml-1">Processing</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-error/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-credit-card text-error"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+            <!-- @END_COMPONENT: StatsCards -->
+
+            <!-- @COMPONENT: APIEndpointsSection -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- API Endpoints Overview -->
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                    <h3 class="text-xl font-gaming font-bold mb-4 text-accent">API Endpoints</h3>
+                    <div class="space-y-3">
+                        <!-- @MAP: endpoints.map(endpoint => ( -->
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-1 bg-success/20 text-success text-xs rounded font-mono">GET</span>
+                                <span class="font-mono text-sm">/api/products</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-success rounded-full"></div>
+                                <span class="text-xs text-gray-400">Active</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-1 bg-accent/20 text-accent text-xs rounded font-mono">POST</span>
+                                <span class="font-mono text-sm">/api/auth/login</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-success rounded-full"></div>
+                                <span class="text-xs text-gray-400">Active</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-1 bg-warning/20 text-warning text-xs rounded font-mono">POST</span>
+                                <span class="font-mono text-sm">/api/payments/create</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-success rounded-full"></div>
+                                <span class="text-xs text-gray-400">Active</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-1 bg-error/20 text-error text-xs rounded font-mono">POST</span>
+                                <span class="font-mono text-sm">/api/webhooks/efibank</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-success rounded-full"></div>
+                                <span class="text-xs text-gray-400">Active</span>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    
+                    <button class="w-full mt-4 bg-accent hover:bg-accent/80 text-primary font-semibold py-2 px-4 rounded-lg transition-colors" data-event="click:viewAllEndpoints">
+                        View All Endpoints
+                    </button>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                    <h3 class="text-xl font-gaming font-bold mb-4 text-accent">Recent Transactions</h3>
+                    <div class="space-y-3">
+                        <!-- @MAP: transactions.map(transaction => ( -->
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-coins text-accent"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium" data-bind="transaction.product">1000 Coins</p>
+                                    <p class="text-xs text-gray-400" data-bind="transaction.user">player123</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-success">R$ 25.00</p>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-success/20 text-success">
+                                    Approved
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-warning/20 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-crown text-warning"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium">VIP Gold</p>
+                                    <p class="text-xs text-gray-400">gamer_pro</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-success">R$ 50.00</p>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-warning/20 text-warning">
+                                    Pending
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border border-dark-border">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-car text-accent"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium">Lamborghini</p>
+                                    <p class="text-xs text-gray-400">speed_demon</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-success">R$ 150.00</p>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-success/20 text-success">
+                                    Delivered
+                                </span>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: APIEndpointsSection -->
+
+            <!-- @COMPONENT: SystemHealth -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Database Status -->
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                    <h4 class="text-lg font-semibold mb-4 text-white">Database Health</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">SQLite Status</span>
+                            <span class="text-success flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Connected
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Tables</span>
+                            <span class="text-white">6/6</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Migrations</span>
+                            <span class="text-success">Up to date</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FiveM Integration -->
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                    <h4 class="text-lg font-semibold mb-4 text-white">FiveM Server</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Connection</span>
+                            <span class="text-success flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Online
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Players</span>
+                            <span class="text-white">127/200</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Delivery Queue</span>
+                            <span class="text-accent">3 pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Gateway -->
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                    <h4 class="text-lg font-semibold mb-4 text-white">EfiBank Integration</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">PIX Gateway</span>
+                            <span class="text-success flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Active
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Webhook</span>
+                            <span class="text-success">Configured</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400">Last Payment</span>
+                            <span class="text-gray-300">2 min ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: SystemHealth -->
+
+            <!-- @COMPONENT: QuickActions -->
+            <div class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                <h3 class="text-xl font-gaming font-bold mb-6 text-accent">Quick Actions</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button class="flex flex-col items-center p-4 bg-secondary hover:bg-accent/10 border border-dark-border hover:border-accent/50 rounded-lg transition-all duration-300 group" data-event="click:createProduct">
+                        <i class="fas fa-plus-circle text-2xl text-accent mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium">Add Product</span>
+                    </button>
+
+                    <button class="flex flex-col items-center p-4 bg-secondary hover:bg-success/10 border border-dark-border hover:border-success/50 rounded-lg transition-all duration-300 group" data-event="click:grantItems">
+                        <i class="fas fa-gift text-2xl text-success mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium">Grant Items</span>
+                    </button>
+
+                    <button class="flex flex-col items-center p-4 bg-secondary hover:bg-warning/10 border border-dark-border hover:border-warning/50 rounded-lg transition-all duration-300 group" data-event="click:viewLogs">
+                        <i class="fas fa-file-alt text-2xl text-warning mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium">View Logs</span>
+                    </button>
+
+                    <button class="flex flex-col items-center p-4 bg-secondary hover:bg-error/10 border border-dark-border hover:border-error/50 rounded-lg transition-all duration-300 group" data-event="click:serverRestart">
+                        <i class="fas fa-sync text-2xl text-error mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium">Restart API</span>
+                    </button>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: QuickActions -->
+
+            <!-- @COMPONENT: APIDocumentation -->
+            <div class="mt-8 bg-dark-card p-6 rounded-xl border border-dark-border">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-gaming font-bold text-accent">API Documentation</h3>
+                    <span class="px-3 py-1 bg-success/20 text-success text-sm rounded-full">Swagger Ready</span>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-white">Core Endpoints</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/auth/*</span>
+                                <span class="text-accent">Authentication</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/products/*</span>
+                                <span class="text-success">Product Management</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/cart/*</span>
+                                <span class="text-warning">Shopping Cart</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/payments/*</span>
+                                <span class="text-error">Payment Processing</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-white">Integration</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/webhooks/*</span>
+                                <span class="text-accent">Webhook Handlers</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/server/*</span>
+                                <span class="text-success">FiveM Integration</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/admin/*</span>
+                                <span class="text-warning">Administration</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-secondary/50">
+                                <span class="font-mono">/api/health</span>
+                                <span class="text-error">Health Check</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex gap-4">
+                    <button class="px-4 py-2 bg-accent hover:bg-accent/80 text-primary rounded-lg font-semibold transition-colors" data-event="click:openSwagger">
+                        Open Swagger UI
+                    </button>
+                    <button class="px-4 py-2 bg-secondary hover:bg-gray-600 text-white border border-dark-border rounded-lg transition-colors" data-event="click:downloadOpenAPI">
+                        Download OpenAPI Spec
+                    </button>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: APIDocumentation -->
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @COMPONENT: LoadingOverlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-primary/90 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-accent mx-auto mb-4"></div>
+            <p class="text-accent font-gaming">Processing API Request...</p>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: LoadingOverlay -->
+
+    <!-- @COMPONENT: NotificationToast -->
+    <div id="notificationToast" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-dark-card border border-accent/50 rounded-lg p-4 shadow-lg max-w-sm">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-check-circle text-success"></i>
+                <div>
+                    <p class="text-white font-medium" data-bind="notification.title">API Operation Successful</p>
+                    <p class="text-gray-400 text-sm" data-bind="notification.message">Your request has been processed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: NotificationToast -->
+
+    <script>
+        (function() {
+            // TODO: Implement actual API integration and state management
+            
+            // Mock data for demonstration
+            const mockData = {
+                stats: {
+                    totalUsers: 1247,
+                    monthlyRevenue: 15420,
+                    activeProducts: 89,
+                    pendingPayments: 23
+                },
+                endpoints: [
+                    { method: 'GET', path: '/api/products', status: 'active' },
+                    { method: 'POST', path: '/api/auth/login', status: 'active' },
+                    { method: 'POST', path: '/api/payments/create', status: 'active' },
+                    { method: 'POST', path: '/api/webhooks/efibank', status: 'active' }
+                ],
+                transactions: [
+                    { id: 1, product: '1000 Coins', user: 'player123', amount: 25.00, status: 'approved' },
+                    { id: 2, product: 'VIP Gold', user: 'gamer_pro', amount: 50.00, status: 'pending' },
+                    { id: 3, product: 'Lamborghini', user: 'speed_demon', amount: 150.00, status: 'delivered' }
+                ]
+            };
+
+            // Simulate real-time updates
+            function updateStats() {
+                // TODO: Replace with actual API calls
+                console.log('Updating dashboard stats...');
+            }
+
+            // Event handlers for UI interactions
+            document.addEventListener('click', function(e) {
+                const button = e.target.closest('button');
+                if (!button) return;
+
+                const action = button.getAttribute('data-event');
+                if (!action) return;
+
+                const [event, handler] = action.split(':');
+                
+                if (event === 'click') {
+                    switch(handler) {
+                        case 'viewAllEndpoints':
+                            showNotification('Opening endpoints documentation...');
+                            break;
+                        case 'createProduct':
+                            showNotification('Opening product creation form...');
+                            break;
+                        case 'grantItems':
+                            showNotification('Opening item grant interface...');
+                            break;
+                        case 'viewLogs':
+                            showNotification('Loading system logs...');
+                            break;
+                        case 'serverRestart':
+                            showNotification('Initiating API restart...');
+                            break;
+                        case 'openSwagger':
+                            showNotification('Opening Swagger documentation...');
+                            break;
+                        case 'downloadOpenAPI':
+                            showNotification('Downloading OpenAPI specification...');
+                            break;
+                    }
+                }
+            });
+
+            function showNotification(message) {
+                const toast = document.getElementById('notificationToast');
+                const messageEl = toast.querySelector('[data-bind="notification.message"]');
+                messageEl.textContent = message;
+                
+                toast.classList.remove('hidden');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Initialize dashboard
+            function initDashboard() {
+                console.log('FiveM Store API Dashboard initialized');
+                console.log('Mock data loaded:', mockData);
+                
+                // TODO: Set up WebSocket connections for real-time updates
+                // TODO: Initialize API health monitoring
+                // TODO: Set up authentication state management
+            }
+
+            // Start the application
+            initDashboard();
+            setInterval(updateStats, 30000); // Update every 30 seconds
+        })();
+    </script>
+</body>
+</html>

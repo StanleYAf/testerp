@@ -143,7 +143,6 @@ export const serverController = {
     }
 
     try {
-      // Create grant record
       const grantId = CryptoUtils.generateUUID();
       
       // Find user by FiveM identifier
@@ -156,6 +155,14 @@ export const serverController = {
           message: "No user found with the specified FiveM identifier"
         });
       }
+
+      // --- Início da alteração: Adição da lógica de atualização do saldo de moedas ---
+      if (grantType === "coin" && grantData && typeof grantData.amount === "number") {
+          const newCoins = user.coins + grantData.amount;
+          await storage.updateUser(user.id, { coins: newCoins });
+          logger.info(`Updated user ${user.username} coins from ${user.coins} to ${newCoins}`);
+      }
+      // --- Fim da alteração ---
 
       const grant = await storage.createGrant({
         id: grantId,
